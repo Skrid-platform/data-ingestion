@@ -4,7 +4,7 @@
 #--------------------------------
 #
 # Author            : Lasercata
-# Last modification : 2024.07.25
+# Last modification : 2024.07.26
 # Version           : v1.0.0
 #
 #--------------------------------
@@ -12,7 +12,7 @@
 '''Defining useful functions for graphs'''
 
 #---Util
-def try_to_convert_to_int_or_float(s: str|None) -> str|int|float|None:
+def try_to_convert_to_int_or_float(s: str|None) -> int|float|str|None:
     '''
     Try to convert `s` to an int, then to a float, and if all fail, return the string.
     Otherwise it returns the converted value.
@@ -76,6 +76,7 @@ def make_create_link_string(id1: str, id2: str, type_: str, data: dict|None = No
     - id1   : the cypher id of the first element to link ;
     - id2   : the cypher id of the second element to link.
     - type_ : the type of the link (e.g 'IS', 'HAS', 'NEXT', ...) ;
+    - data  : the data to add on the link.
     '''
 
     if data == None:

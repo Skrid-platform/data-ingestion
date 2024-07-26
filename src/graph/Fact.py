@@ -4,7 +4,7 @@
 #--------------------------------
 #
 # Author            : Lasercata
-# Last modification : 2024.07.25
+# Last modification : 2024.07.26
 # Version           : v1.0.0
 #
 #--------------------------------
@@ -12,13 +12,13 @@
 '''Represent the Fact nodes in the graph (notes)'''
 
 ##-Import
-from src.graph.utils_graph import make_create_string
+from src.graph.utils_graph import make_create_string, make_create_link_string
 
 ##-Main
 class Fact:
     '''Represent a `Fact` node (note)'''
 
-    def __init__(self, source, id_, type_, class_, octave, duration, accid=None, accid_ges=None, syllable=None, instrument=None):
+    def __init__(self, source: str, id_: str, type_: str, class_: str, octave: int, duration: int, accid: str|None = None, accid_ges: str|None = None, syllable: str|None = None, instrument: str|None = None):
         '''
         Initate Fact.
 
@@ -51,7 +51,7 @@ class Fact:
     def _calculate_other_values(self):
         '''Calculate the other needed values.'''
 
-        self.input_file = self.source.replace('.mei', '_mei')
+        self.input_file = self.source.replace('.', '_').replace('-', '_')
         self.cypher_id = self.id_ + '_' + self.input_file
 
         self.name = self.class_.upper() + str(self.octave)
@@ -83,8 +83,14 @@ class Fact:
         if type(self.accid_ges) not in (None, 's', 'f'):
             raise ValueError(f'Fact: `accid_ges` attribute has to be in (None, "s", "f"), but "{self.accid_ges} was found !"')
 
-    def to_cypher(self) -> str:
-        '''Returns the CREATE cypher clause'''
+    def to_cypher(self, parent_cypher_id: str) -> str:
+        '''Returns the CREATE cypher clause that creates the Fact node and the link from its Event parent.'''
     
-        return make_create_string(self.cypher_id, 'Fact', self.__dict__)
+        # Create Fact node
+        c = make_create_string(self.cypher_id, 'Fact', self.__dict__)
+
+        # Create link from parent (Event)
+        c += '\n' + make_create_link_string(parent_cypher_id, self.cypher_id, 'IS')
+
+        return c
 

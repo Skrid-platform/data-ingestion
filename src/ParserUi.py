@@ -28,7 +28,7 @@ version = '0.1.0'
 
 
 ##-Util
-def log(msg, lvl='warn', use_stderr=True):
+def log(msg: str, lvl: str = 'warn', use_stderr: bool = True):
     '''
     Write msg as a log, in the following format :
         [date time] - Musypher: [level]: [message]
