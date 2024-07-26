@@ -12,9 +12,9 @@
 '''Represents the Score node in the graph'''
 
 ##-Imports
-from TopRhythmic import TopRhythmic
-from Voice import Voice
-from src.graph.utils_graph import make_create_string, make_create_link_string
+from src.graph.TopRhythmic import TopRhythmic
+from src.graph.Voice import Voice
+from src.graph.utils_graph import make_create_string
 
 ##-Main
 class Score:
@@ -25,7 +25,7 @@ class Score:
         Initate Score.
 
         - source     : the name of the source file ;
-        - id_        : the mei id of the Score node ;
+        - id_        : the mei id of the 'staffGrp' ;
         - composer   : a string describing the composer ;
         - collection : the collection name ;
         - voices     : the list of voices.
@@ -64,7 +64,7 @@ class Score:
         Order of creation :
             - Score ;
             - TopRhythmic (see `TopRhythmic.to_cypher` for more details) ;
-            - Link from Score to Voices
+            - Voices.
         '''
 
         # Create the Score node
@@ -73,7 +73,7 @@ class Score:
         # Create the TopRhythmic
         c += '\n' + top_rhythmic.to_cypher(self.cypher_id)
 
-        # Create links to voices
+        # Create voices
         for v in self.voices:
             c += v.to_cypher(self.cypher_id, top_rhythmic.cypher_id)
 

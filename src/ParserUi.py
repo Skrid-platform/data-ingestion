@@ -15,35 +15,14 @@
 #---General
 import argparse
 from os.path import isfile
-from sys import stderr
-
-from datetime import datetime as dt
 
 #---Project
-#TODO
+from src.MeiToGraph import MeiToGraph
+from src.utils import log
 
 
 ##-Init
 version = '0.1.0'
-
-
-##-Util
-def log(msg: str, lvl: str = 'warn', use_stderr: bool = True):
-    '''
-    Write msg as a log, in the following format :
-        [date time] - Musypher: [level]: [message]
-
-    - msg (str)         : the message to log ;
-    - lvl (str)         : the level of the message (usually 'info', 'warn', 'error') ;
-    - use_stderr (bool) : if True, write to stderr. Otherwise write to stdout.
-    '''
-
-    p = f'{dt.now()} - Musypher: {lvl}: {msg}'
-
-    if use_stderr:
-        print(p, file=stderr)
-    else:
-        print(p)
 
 
 ##-Ui parser
@@ -64,10 +43,15 @@ class ParserUi:
 
         #---Add arguments
         self.parser.add_argument(
-            '-v', '--version',
+            '-V', '--version',
             help='show version and exit',
             nargs=0,
             action=self.Version
+        )
+        self.parser.add_argument(
+            '-v', '--verbose',
+            action='store_true',
+            help='print logs when a file is converted',
         )
 
         # self.parser.add_argument(
@@ -100,10 +84,13 @@ class ParserUi:
 
         for f in args.files:
             if not isfile(f):
-                log(f'"{f}" is not a file !', 'warn')
+                log('warn', f'"{f}" is not a file !')
 
             else:
                 print(f) #TODO
+
+                # if args.verbose:
+                #     log('info', f'File "{f}" has been converted to cypher in file "{TODO}"')
 
 
     class Version(argparse.Action):
@@ -114,8 +101,3 @@ class ParserUi:
             print(f'Musypher v{version}')
             parser.exit()
 
-
-##-Run
-if __name__ == '__main__':
-    app = ParserUi()
-    app.parse()

@@ -12,8 +12,7 @@
 '''Represent the Measure nodes in the graph'''
 
 ##-Imports
-from Event import Event
-# from utils_graph import make_create_string, make_create_link_string
+from src.graph.Event import Event
 from src.graph.utils_graph import make_create_string, make_create_link_string
 
 ##-Main

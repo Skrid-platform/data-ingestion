@@ -12,7 +12,7 @@
 '''Represent the TopRhythmic node in the graph'''
 
 ##-Imports
-from Measure import Measure
+from src.graph.Measure import Measure
 from src.graph.utils_graph import make_create_string, make_create_link_string
 
 ##-Main

@@ -18,7 +18,7 @@ from src.graph.utils_graph import make_create_string, make_create_link_string
 class Fact:
     '''Represent a `Fact` node (note)'''
 
-    def __init__(self, source: str, id_: str, type_: str, class_: str, octave: int, duration: int, accid: str|None = None, accid_ges: str|None = None, syllable: str|None = None, instrument: str|None = None):
+    def __init__(self, source: str, id_: str, type_: str, class_: str|None, octave: int|None, duration: int, accid: str|None = None, accid_ges: str|None = None, syllable: str|None = None, instrument: str|None = None):
         '''
         Initate Fact.
 
@@ -68,14 +68,17 @@ class Fact:
         if self.type_ not in ('note', 'rest'):
             raise ValueError(f'Fact: `type_` attribute has to be "note" or "rest", but not "{self.type_} !"')
 
-        if self.type_ == 'note' and self.class_ not in 'abcdefg':
+        if type(self.duration) not in (int, float) or self.duration < 0:
+            raise ValueError(f'Fact: `duration` attribute has to be a float, but not "{self.duration} !"')
+
+        if self.type_ == 'rest':
+            return # None of the following tests are relevent for a rest note
+
+        if self.class_ == None or (self.type_ == 'note' and self.class_ not in 'abcdefg'):
             raise ValueError(f'Fact: `class_` attribute has to be in (a, b, c, d, e, f, g), but not "{self.class_} !"')
 
         if type(self.octave) != int or self.octave < 0 or self.octave > 9: #TODO: I am not certain of the boundaries
             raise ValueError(f'Fact: `octave` attribute has to be an int, but not "{self.octave} !"')
-
-        if type(self.duration) not in (int, float) or self.duration < 0:
-            raise ValueError(f'Fact: `duration` attribute has to be a float, but not "{self.duration} !"')
 
         if type(self.accid) not in (None, 's', 'f'):
             raise ValueError(f'Fact: `accid` attribute has to be in (None, "s", "f"), but "{self.accid} was found !"')

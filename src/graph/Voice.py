@@ -12,7 +12,7 @@
 '''Represent the Voices nodes in the graph'''
 
 ##-Imports
-from Event import Event
+from src.graph.Event import Event
 from src.graph.utils_graph import make_create_string, make_create_link_string
 
 ##-Main
@@ -31,7 +31,7 @@ class Voice:
         '''
 
         self.source = source
-        self.id_ = id_
+        self.id_ = id_.replace(' ', '_')
         self.first_event = first_event
 
         self._calculate_other_values();

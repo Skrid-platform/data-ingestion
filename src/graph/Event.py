@@ -12,8 +12,7 @@
 '''Represent the Event nodes in the graph'''
 
 ##-Imports
-from Fact import Fact
-# from utils_graph import make_create_string, make_create_link_string
+from src.graph.Fact import Fact
 from src.graph.utils_graph import make_create_string, make_create_link_string
 
 ##-Main
