@@ -14,11 +14,11 @@
 ##-Imports
 #---General
 import argparse
-from os.path import isfile, isdir
+from os.path import isfile, isdir, abspath
 
 #---Project
 from src.MeiToGraph import MeiToGraph
-from src.utils import log, basename
+from src.utils import log, basename, write_file
 
 
 ##-Init
@@ -104,7 +104,10 @@ class ParserUi:
             help='save all dumps in the given folder'
         )
 
-        #TODO: option to write .cql file
+        self.parser.add_argument(
+            '-q', '--cql',
+            help='If enabled, also create the .cql file (that is useful to load all the generated .cypher in the database)'
+        )
 
         # self.parser.add_argument(
         #     '-U', '--URI',
@@ -134,6 +137,8 @@ class ParserUi:
         #---Get arguments
         args = self.parser.parse_args()
 
+        dump_files = []
+
         for k, f in enumerate(args.files):
             if not isfile(f):
                 log('warn', f'"{f}" is not a file !')
@@ -145,10 +150,44 @@ class ParserUi:
                     log('info', f'Converting file "{f}" to "{dump_fn}" ...')
 
                 converter = MeiToGraph(f, args.verbose)
-                if converter.to_file(dump_fn, args.no_confirmation):
+                res = converter.to_file(dump_fn, args.no_confirmation)
+
+                if res:
                     log('info', f'File "{f}" has been converted to cypher in file "{dump_fn}" ! {round((k + 1) / len(args.files) * 100)}% done !')
+                    dump_files.append(dump_fn)
+
                 else:
                     log('info', f'Conversion for the file "{f}" has been canceled ! {round((k + 1) / len(args.files) * 100)}% done !')
+        
+        if args.cql != None:
+            self._make_cql_file(dump_files, args.cql, args.no_confirmation, args.verbose)
+
+    def _make_cql_file(self, dump_files: list[str], fn_out: str, no_confirmation: bool = False, verbose: bool = False):
+        '''
+        Creates the .cql file that is used to load all the dump files in the database.
+
+        - dump_files      : the list of the .cypher filenames ;
+        - fn_out          : the output filename ;
+        - no_confirmation : if True, do not ask for confirmation to overwrite the file if it already exists ;
+        - verbose         : if True, log errors and warnings.
+        '''
+    
+        if not write_file(fn_out, '', no_confirmation, verbose):
+            return
+
+        with open(fn_out, 'w') as f:
+            f.write('CALL.apoc.cypher.runFiles([')
+
+            for k, dump_file in enumerate(dump_files):
+                abs_path = abspath(dump_file)
+                f.write(f"'{abs_path}'")
+
+                if k != len(dump_files) - 1:
+                    f.write(', ')
+
+            f.write('], {statistics: false});')
+
+        log('info', f'File "{fn_out}" written !')
 
 
     class Version(argparse.Action):
