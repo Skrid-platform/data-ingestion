@@ -51,11 +51,14 @@ class Fact:
     def _calculate_other_values(self):
         '''Calculate the other needed values.'''
 
-        self.input_file = self.source.replace('.', '_').replace('-', '_')
+        self.input_file = self.source.replace('.', '_').replace('-', '_').replace('/', '_')
         self.cypher_id = self.id_ + '_' + self.input_file
 
-        self.name = self.class_.upper() + str(self.octave)
-        self.duration = 1 / self.dur
+        if self.class_ != None:
+            self.name = self.class_.upper() + str(self.octave)
+
+        if self.type_ != 'END':
+            self.duration = 1 / self.dur
 
         #TODO: calculate frequency, half_tones_from_a4, half_tones_diatonic_from_a4, alteration_in_tones, alteration_in_half_tones.
 
@@ -65,26 +68,26 @@ class Fact:
         Raise a ValueError otherwise.
         '''
     
-        if self.type_ not in ('note', 'rest'):
-            raise ValueError(f'Fact: `type_` attribute has to be "note" or "rest", but not "{self.type_} !"')
+        if self.type_ not in ('note', 'rest', 'END'):
+            raise ValueError(f'Fact: `type_` attribute has to be "note", "rest", or "END", but not "{self.type_}" !')
 
-        if type(self.duration) not in (int, float) or self.duration < 0:
-            raise ValueError(f'Fact: `duration` attribute has to be a float, but not "{self.duration} !"')
+        if type(self.dur) != int or self.dur < 0:
+            raise ValueError(f'Fact: `duration` attribute has to be a float, but not "{self.duration}" !')
 
         if self.type_ == 'rest':
             return # None of the following tests are relevent for a rest note
 
         if self.class_ == None or (self.type_ == 'note' and self.class_ not in 'abcdefg'):
-            raise ValueError(f'Fact: `class_` attribute has to be in (a, b, c, d, e, f, g), but not "{self.class_} !"')
+            raise ValueError(f'Fact: `class_` attribute has to be in (a, b, c, d, e, f, g), but not "{self.class_}" !')
 
         if type(self.octave) != int or self.octave < 0 or self.octave > 9: #TODO: I am not certain of the boundaries
             raise ValueError(f'Fact: `octave` attribute has to be an int, but not "{self.octave} !"')
 
-        if type(self.accid) not in (None, 's', 'f'):
-            raise ValueError(f'Fact: `accid` attribute has to be in (None, "s", "f"), but "{self.accid} was found !"')
+        if self.accid not in (None, 's', 'f'):
+            raise ValueError(f'Fact: `accid` attribute has to be in (None, "s", "f"), but "{self.accid}" was found !')
 
-        if type(self.accid_ges) not in (None, 's', 'f'):
-            raise ValueError(f'Fact: `accid_ges` attribute has to be in (None, "s", "f"), but "{self.accid_ges} was found !"')
+        if self.accid_ges not in (None, 's', 'f'):
+            raise ValueError(f'Fact: `accid_ges` attribute has to be in (None, "s", "f"), but "{self.accid_ges}" was found !')
 
     def to_cypher(self, parent_cypher_id: str) -> str:
         '''Returns the CREATE cypher clause that creates the Fact node and the link from its Event parent.'''

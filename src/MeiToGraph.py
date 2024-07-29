@@ -16,7 +16,7 @@
 import xml.etree.ElementTree as ET
 
 #---Project
-from src.utils import log
+from src.utils import log, write_file
 
 from src.graph.Score import Score
 from src.graph.TopRhythmic import TopRhythmic
@@ -42,7 +42,7 @@ def remove_namespace_from_keys(d: dict[str, str]) -> dict[str, str]:
     for k in d:
         new_d[remove_namespace_from_string(k)] = d[k]
 
-    return d
+    return new_d
 
 ##-Main
 class MeiToGraph:
@@ -65,18 +65,21 @@ class MeiToGraph:
         self.collection = None
         self.score_id = None
 
+        self.score = None
+
         #---Init for parsing
         self.current_measure = None
-        self.current_event = None
+        self.current_events = [] # self.current_events[k] is the current event for the voice k + 1
         self.facts = [] # Used for chords
 
     def parse_mei(self):
-        '''Parses the MEI (XML) and create the graph''' #TODO: write better doc
+        '''Parses the MEI (XML) to create the graph with the internal representation.'''
 
         chord = False # Flag used to know if the currently read notes are in a chord or standalone.
         voice_def = False # Flag used for voice definition, when the id is not in the 'staffGrp', but in a sublabel.
         current_voice_nb = 0
         current_chord_duration = 0
+        current_syllable = None # Used to store syllables. None when there is no syllable for the current note.
 
         for event, elem in ET.iterparse(self.fn, ['start', 'end']):
             tag = remove_namespace_from_string(elem.tag)
@@ -101,7 +104,7 @@ class MeiToGraph:
                 if 'id' in attrib:
                     self._add_voice(attrib['id'])
                 else:
-                    voice_def = True # The id is in a label
+                    voice_def = True # The id is in a label, see below
 
             elif voice_def and event == 'start' and tag == 'label':
                 self._add_voice(elem.text)
@@ -127,10 +130,10 @@ class MeiToGraph:
                 chord = False
 
                 # Adding all the notes in an Event
-                self._add_event_from_facts(attrib['id'], 'note', current_chord_duration, current_voice_nb) #TODO: add verse / syllable
+                self._add_event_from_facts(attrib['id'], 'note', current_chord_duration, current_voice_nb)
 
             #-Notes
-            elif event == 'start' and tag == 'note':
+            elif event == 'end' and tag == 'note': # Parsing on end to have syllables already seen
                 # Check accidentals
                 accid = None
                 accid_ges = None
@@ -140,15 +143,24 @@ class MeiToGraph:
                     accid_ges = attrib['accid.ges']
 
                 # Create note
+                if chord:
+                    duration = current_chord_duration
+                else:
+                    duration = int(attrib['dur'])
+
                 self._add_fact( # Add the note as a Fact
                     attrib['id'],
                     'note',
                     attrib['pname'],
                     int(attrib['oct']),
-                    int(attrib['dur']),
+                    duration,
                     accid,
                     accid_ges,
+                    current_syllable
                 )
+
+                # Reset current syllable
+                current_syllable = None
 
                 # If it is not a chord, add the Event
                 if not chord:
@@ -157,15 +169,41 @@ class MeiToGraph:
                         'note',
                         int(attrib['dur']),
                         current_voice_nb
-                    ) #TODO: add verse
+                    )
+
+            #-Syllables
+            elif event == 'start' and tag == 'syl':
+                current_syllable = elem.text
             
             #-Rest
             elif event == 'start' and tag == 'rest':
-                self._add_fact(attrib['id'], 'rest', None, None, int(attrib['dur']), None, None)
+                self._add_fact(attrib['id'], 'rest', None, None, int(attrib['dur']), None, None, None)
                 self._add_event_from_facts(attrib['id'] + '_event', 'rest', int(attrib['dur']), current_voice_nb)
             
-            #TODO: add first event to voice
-            #TODO: add Event 'END' (with no Fact child, type='END')
+        self._add_last_events()
+
+    def to_file(self, out_fn: str, no_confirmation: bool = False) -> bool:
+        '''
+        Convert the internal graph to a cypher dump, and write it to a file.
+
+        If the `self.parse_mei` method has already been called (so `self.score` is not None), it does not call it again.
+        Otherwise, it calls the method (so it is not needed to call `parse_mei` before calling this method).
+
+        Return :
+            - True  if the file has been written
+            - False otherwise.
+
+        - out_fn          : the filename where to write the output ;
+        - no_confirmation : if True, do not ask for confirmation to overwrite the file if it already exists.
+        '''
+    
+        if self.score == None:
+            self.parse_mei()
+
+        dump = self.score.to_cypher(self.top_rhythmic)
+        return write_file(out_fn, dump, no_confirmation, self.verbose)
+
+    #TODO: def dump(self, uri: str, user: str, pwd: str)
 
     def _handle_persName(self, role, text):
         '''
@@ -204,8 +242,8 @@ class MeiToGraph:
             if self.verbose:
                 log('warn', f'MeiToGraph: _create_score: `self.collection` is not defined')
 
-        self.score = Score(self.fn, self.score_id, self.composer, self.collection, voices=[])
         self.top_rhythmic = TopRhythmic(self.fn, self.composer, self.collection, measures=[])
+        self.score = Score(self.fn, self.score_id, self.composer, self.collection, voices=[])
 
     def _add_voice(self, id_):
         '''
@@ -214,8 +252,10 @@ class MeiToGraph:
         - id_ : the voice id.
         '''
 
-        v = Voice(self.fn, id_)
-        self.score.add_voice(v)
+        v = Voice(self.fn, id_) # Create the voice
+        self.score.add_voice(v) # Add it to the voice list
+
+        self.current_events.append(None) # Add an empty event in the current events list for this new voice
 
     def _add_measure(self, id_):
         '''
@@ -228,10 +268,7 @@ class MeiToGraph:
         self.current_measure = Measure(self.fn, id_, events=[])
         self.top_rhythmic.add_measure(self.current_measure) #TODO: ensure that the measure added here is not a copy (so when events are added, they are added there too)
 
-        #TODO: write on the fly measure per measure ?
-        pass # To do this, use old_measure.to_cypher_file() ?
-
-    def _add_fact(self, id_: str, type_: str, class_: str|None, octave: int|None, duration: int, accid: str|None, accid_ges: str|None):
+    def _add_fact(self, id_: str, type_: str, class_: str|None, octave: int|None, duration: int, accid: str|None, accid_ges: str|None, syllable: str|None):
         '''
         Creates and adds a `Fact` to `self.facts`. Called when on tag `note` in a chord.
 
@@ -241,11 +278,12 @@ class MeiToGraph:
         - octave    : the octave of the note ;
         - duration  : the duration of the note (1 for whole, 2 for half, ...) ;
         - accid     : a potential accidental on the note ;
-        - accid_ges : a potential accidental on the key.
+        - accid_ges : a potential accidental on the key ;
+        - syllable  : the potential syllable attatched to a note.
         '''
     
         #-Create Fact
-        f = Fact(self.fn, id_, type_, class_, octave, duration, accid, accid_ges, None) #TODO: syllable.
+        f = Fact(self.fn, id_, type_, class_, octave, duration, accid, accid_ges, syllable)
         self.facts.append(f)
 
     def _add_event_from_facts(self, id_: str, type_: str, duration: int, voice_nb: int):
@@ -255,33 +293,46 @@ class MeiToGraph:
         - id_      : the mei id of the note ;
         - type_    : either 'note' for a note, or 'rest' for a rest ;
         - duration : the duration of the note (1 for whole, 2 for half, ...) ;
-        - voice_nb : the number of the current voice.
+        - voice_nb : the number of the current voice. First voice is number 1 (not 0).
         '''
 
+        voice_index = voice_nb - 1
+
         #-Set `start` and `end`
-        old_event = self.current_event
+        old_event = self.current_events[voice_index]
 
         if old_event == None:
             start = 0
         else:
             start = old_event.end
 
-        end = start + (1 / duration)
+        if duration == 0:
+            end = None # Last event
+        else:
+            end = start + (1 / duration)
 
         #-Create Event
-        self.current_event = Event(self.fn, id_, type_, duration, start, start, end, facts=self.facts)
+        self.current_events[voice_index] = Event(self.fn, id_, type_, duration, start, start, end, facts=self.facts, voice_nb=voice_nb)
 
         #-Add event to current measure
         if self.current_measure == None:
             raise ValueError('MeiToGraph: _add_event_from_facts: error: note outside of a measure')
 
-        self.current_measure.add_event(self.current_event)
+        self.current_measure.add_event(self.current_events[voice_index], voice_nb)
 
         #-Clear the facts
         self.facts = []
 
-        #-If it is first event, set it as first event of the voice
-        #TODO: do not rely on `old_event == None`: will not work if more than one voice
+        #-If it is first event of the current voice, set it as first event of the voice
+        if voice_index > len(self.score.voices):
+            raise ValueError(f'MeiToGraph: _add_event_from_facts: error with `voice_nb`: too large (number of voices : {len(self.score.voices)}, but `voice_nb` was set to {voice_nb})')
+
+        if not self.score.voices[voice_index].is_first_event_set():
+            self.score.voices[voice_index].set_event(self.current_events[voice_index])
+
+    def _add_last_events(self):
+        '''Adds the last event for each voice.'''
     
-        pass
+        for k in range(len(self.current_events)):
+            self._add_event_from_facts(f'END_voice_{k + 1}', 'END', 0, k + 1)
 

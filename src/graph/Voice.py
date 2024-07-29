@@ -39,7 +39,7 @@ class Voice:
     def _calculate_other_values(self):
         '''Calculate the other needed values.'''
 
-        self.input_file = self.source.replace('.', '_').replace('-', '_')
+        self.input_file = self.source.replace('.', '_').replace('-', '_').replace('/', '_')
         self.cypher_id = self.id_ + '_' + self.input_file
 
         self.staff_number = Voice.n
@@ -53,6 +53,11 @@ class Voice:
         '''
     
         self.first_event = e
+
+    def is_first_event_set(self) -> bool:
+        '''Checks if the first event is set.'''
+    
+        return self.first_event != None
 
     def to_cypher(self, parent_cypher_id: str, top_rhythmic_cypher_id: str) -> str:
         '''
@@ -81,7 +86,7 @@ class Voice:
 
         # Create the links to the first event
         if self.first_event == None:
-            raise ValueError('Voice: to_cypher: `self.cypher_id` was not initialized !')
+            raise ValueError('Voice: to_cypher: `self.first_event` was not initialized !')
 
         c += '\n' + make_create_link_string(self.cypher_id, self.first_event.cypher_id, 'PLAYS')
         c += '\n' + make_create_link_string(self.cypher_id, self.first_event.cypher_id, 'timeSeries')

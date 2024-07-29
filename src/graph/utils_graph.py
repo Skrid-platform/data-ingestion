@@ -24,7 +24,13 @@ def try_to_convert_to_int_or_float(s: str|None) -> int|float|str|None:
         return s
 
     try:
-        ret = int(s)
+        tmp = int(s)
+
+        if tmp == float(s):
+            ret = tmp
+        else:
+            raise ValueError
+
     except ValueError:
         try:
             ret = float(s)
@@ -42,12 +48,20 @@ def format_data(data: dict) -> str:
 
     data_arr = []
     for k in data:
-        d = try_to_convert_to_int_or_float(data[k])
+        if type(data[k]) not in (int, float, str): # Ignore attributes that are None and used internally (lists, ...)
+            continue
+
+        if k == 'id': # Do not try to convert id to a string
+            d = data[k]
+        else:
+            d = try_to_convert_to_int_or_float(data[k])
 
         if type(d) in (int, float):
             data_arr.append(f"{k}: {d}")
-        elif d == None:
-            data_arr.append(f"{k}: 'null'")
+        # elif d == None:
+        #     data_arr.append(f"{k}: 'null'")
+        elif type(d) == str and "'" in d:
+            data_arr.append(f'{k}: "{d}"')
         else:
             data_arr.append(f"{k}: '{d}'")
 

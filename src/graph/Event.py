@@ -19,7 +19,7 @@ from src.graph.utils_graph import make_create_string, make_create_link_string
 class Event:
     '''Represent an `Event` node'''
 
-    def __init__(self, source: str, id_: str, type_: str, duration: int, pos: float, start: float, end: float, facts: list[Fact] = [], instrument: str|None = None):
+    def __init__(self, source: str, id_: str, type_: str, duration: int, pos: float, start: float, end: float, facts: list[Fact] = [], voice_nb: int = 1, instrument: str|None = None):
         '''
         Initate Event.
 
@@ -31,6 +31,7 @@ class Event:
         - start      : the start time of the event (1 correspond to a whole, 0.5 to a half note, ...) ;
         - end        : same but for the end of the event ;
         - facts      : the list of facts (notes) ;
+        - voice_nb   : the number of the voice in which the event takes place (starts from 1, not from 0) ;
         - instrument : the instrument.
         '''
 
@@ -43,6 +44,7 @@ class Event:
         self.end = end
         self.facts = facts
         self.instrument = instrument
+        self.voice_nb = voice_nb
 
         self._check();
         self._calculate_other_values();
@@ -50,10 +52,11 @@ class Event:
     def _calculate_other_values(self):
         '''Calculate the other needed values.'''
 
-        self.input_file = self.source.replace('.', '_').replace('-', '_')
+        self.input_file = self.source.replace('.', '_').replace('-', '_').replace('/', '_')
         self.cypher_id = self.id_ + '_' + self.input_file
 
-        self.duration = 1 / self.dur
+        if self.type_ != 'END':
+            self.duration = 1 / self.dur
 
     def _check(self):
         '''
@@ -61,11 +64,11 @@ class Event:
         Raise a ValueError otherwise.
         '''
     
-        if self.type_ not in ('note', 'rest'):
-            raise ValueError(f'Fact: `type_` attribute has to be "note" or "rest", but not "{self.type_} !"')
+        if self.type_ not in ('note', 'rest', 'END'):
+            raise ValueError(f'Fact: `type_` attribute has to be "note", "rest" or "END", but not "{self.type_}" !')
 
-        if type(self.duration) not in (int, float) or self.duration < 0:
-            raise ValueError(f'Fact: `duration` attribute has to be a float, but not "{self.duration} !"')
+        if type(self.dur) != int or self.dur < 0:
+            raise ValueError(f'Fact: `duration` attribute has to be a float, but not "{self.duration}" !')
 
     def add_fact(self, f: Fact):
         '''
@@ -102,9 +105,9 @@ class Event:
         for f in self.facts:
             c += '\n' + f.to_cypher(self.cypher_id)
 
-        # Create the links to facts
-        for f in self.facts:
-            c += '\n' + make_create_link_string(self.cypher_id, f.cypher_id, 'IS')
+        # # Create the links to facts # This is done in Fact.to_cypher
+        # for f in self.facts:
+        #     c += '\n' + make_create_link_string(self.cypher_id, f.cypher_id, 'IS')
 
         # Create link to previous Event
         if previous_Event != None:

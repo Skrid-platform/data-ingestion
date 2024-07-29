@@ -42,7 +42,7 @@ class Score:
     def _calculate_other_values(self):
         '''Calculate the other needed values.'''
 
-        self.input_file = self.source.replace('.', '_').replace('-', '_')
+        self.input_file = self.source.replace('.', '_').replace('-', '_').replace('/', '_')
         self.cypher_id = self.id_ + '_' + self.input_file
 
     def add_voice(self, v: Voice):
@@ -75,6 +75,6 @@ class Score:
 
         # Create voices
         for v in self.voices:
-            c += v.to_cypher(self.cypher_id, top_rhythmic.cypher_id)
+            c += '\n' + v.to_cypher(self.cypher_id, top_rhythmic.cypher_id)
 
         return c
