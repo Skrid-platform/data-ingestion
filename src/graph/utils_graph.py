@@ -51,10 +51,13 @@ def format_data(data: dict) -> str:
         if type(data[k]) not in (int, float, str): # Ignore attributes that are None and used internally (lists, ...)
             continue
 
-        if k == 'id': # Do not try to convert id to a string
+        if k in ('id', 'id_'): # Do not try to convert id to a string
             d = data[k]
         else:
             d = try_to_convert_to_int_or_float(data[k])
+
+        if k[-1] == '_': # changing id_ to id, class_ to class, type_ to type, ...
+            k = k[:-1]
 
         if type(d) in (int, float):
             data_arr.append(f"{k}: {d}")
@@ -74,7 +77,7 @@ def make_create_string(cypher_id: str, type_: str, data: dict) -> str:
     '''
     Makes the CREATE clause for the cypher dump.
 
-    - cypher_id  : the cypher id (mei id + '_' + input_file) ;
+    - cypher_id  : the cypher id (mei id + '_' + inputfile) ;
     - type_      : the node type ('Fact', 'Event', ...) ;
     - data       : a dict with the data to write.
     '''

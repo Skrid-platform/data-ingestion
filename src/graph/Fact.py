@@ -51,8 +51,8 @@ class Fact:
     def _calculate_other_values(self):
         '''Calculate the other needed values.'''
 
-        self.input_file = self.source.replace('.', '_').replace('-', '_').replace('/', '_')
-        self.cypher_id = self.id_ + '_' + self.input_file
+        self.inputfile = self.source.replace('.', '_').replace('-', '_').replace('/', '_')
+        self.cypher_id = self.id_ + '_' + self.inputfile
 
         if self.class_ != None:
             self.name = self.class_.upper() + str(self.octave)

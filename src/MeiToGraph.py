@@ -60,6 +60,8 @@ class MeiToGraph:
         self.fn = fn
         self.verbose = verbose
 
+        self.fn_without_path = fn.split('/')[-1]
+
         #---Init for Score
         self.composer = None
         self.collection = None
@@ -242,8 +244,8 @@ class MeiToGraph:
             if self.verbose:
                 log('warn', f'MeiToGraph: _create_score: `self.collection` is not defined')
 
-        self.top_rhythmic = TopRhythmic(self.fn, self.composer, self.collection, measures=[])
-        self.score = Score(self.fn, self.score_id, self.composer, self.collection, voices=[])
+        self.top_rhythmic = TopRhythmic(self.fn_without_path, self.composer, self.collection, measures=[])
+        self.score = Score(self.fn_without_path, self.score_id, self.composer, self.collection, voices=[])
 
     def _add_voice(self, id_):
         '''
@@ -252,7 +254,7 @@ class MeiToGraph:
         - id_ : the voice id.
         '''
 
-        v = Voice(self.fn, id_) # Create the voice
+        v = Voice(self.fn_without_path, id_) # Create the voice
         self.score.add_voice(v) # Add it to the voice list
 
         self.current_events.append(None) # Add an empty event in the current events list for this new voice
@@ -265,8 +267,8 @@ class MeiToGraph:
         '''
 
         old_measure = self.current_measure
-        self.current_measure = Measure(self.fn, id_, events=[])
-        self.top_rhythmic.add_measure(self.current_measure) #TODO: ensure that the measure added here is not a copy (so when events are added, they are added there too)
+        self.current_measure = Measure(self.fn_without_path, id_, events=[])
+        self.top_rhythmic.add_measure(self.current_measure)
 
     def _add_fact(self, id_: str, type_: str, class_: str|None, octave: int|None, duration: int, accid: str|None, accid_ges: str|None, syllable: str|None):
         '''
@@ -283,7 +285,7 @@ class MeiToGraph:
         '''
     
         #-Create Fact
-        f = Fact(self.fn, id_, type_, class_, octave, duration, accid, accid_ges, syllable)
+        f = Fact(self.fn_without_path, id_, type_, class_, octave, duration, accid, accid_ges, syllable)
         self.facts.append(f)
 
     def _add_event_from_facts(self, id_: str, type_: str, duration: int, voice_nb: int):
@@ -312,7 +314,7 @@ class MeiToGraph:
             end = start + (1 / duration)
 
         #-Create Event
-        self.current_events[voice_index] = Event(self.fn, id_, type_, duration, start, start, end, facts=self.facts, voice_nb=voice_nb)
+        self.current_events[voice_index] = Event(self.fn_without_path, id_, type_, duration, start, start, end, facts=self.facts, voice_nb=voice_nb)
 
         #-Add event to current measure
         if self.current_measure == None:

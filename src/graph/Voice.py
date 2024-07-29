@@ -39,8 +39,8 @@ class Voice:
     def _calculate_other_values(self):
         '''Calculate the other needed values.'''
 
-        self.input_file = self.source.replace('.', '_').replace('-', '_').replace('/', '_')
-        self.cypher_id = self.id_ + '_' + self.input_file
+        self.inputfile = self.source.replace('.', '_').replace('-', '_').replace('/', '_')
+        self.cypher_id = self.id_ + '_' + self.inputfile
 
         self.staff_number = Voice.n
         Voice.n += 1;

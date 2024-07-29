@@ -176,7 +176,7 @@ class ParserUi:
             return
 
         with open(fn_out, 'w') as f:
-            f.write('CALL.apoc.cypher.runFiles([')
+            f.write('CALL apoc.cypher.runFiles([')
 
             for k, dump_file in enumerate(dump_files):
                 abs_path = abspath(dump_file)
