@@ -56,7 +56,7 @@ class Event:
         self.cypher_id = self.id_ + '_' + self.inputfile
 
         if self.type_ != 'END':
-            self.duration = 1 / self.dur
+            self.duration = 1 / self.dur #TODO: add dots
 
     def _check(self):
         '''

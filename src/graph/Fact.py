@@ -13,6 +13,7 @@
 
 ##-Import
 from src.graph.utils_graph import make_create_string, make_create_link_string
+from src.utils import get_frequency
 
 ##-Main
 class Fact:
@@ -58,7 +59,10 @@ class Fact:
             self.name = self.class_.upper() + str(self.octave)
 
         if self.type_ != 'END':
-            self.duration = 1 / self.dur
+            self.duration = 1 / self.dur #TODO: add dots
+
+        if self.type_ == 'note' and self.class_ != None and self.octave != None:
+            self.frequency = get_frequency(self.class_, self.octave)
 
         #TODO: calculate frequency, half_tones_from_a4, half_tones_diatonic_from_a4, alteration_in_tones, alteration_in_half_tones.
 

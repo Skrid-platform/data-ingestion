@@ -151,7 +151,7 @@ class MeiToGraph:
                     duration = int(attrib['dur'])
 
                 self._add_fact( # Add the note as a Fact
-                    attrib['id'],
+                    attrib['id'] + '_fact',
                     'note',
                     attrib['pname'],
                     int(attrib['oct']),
@@ -167,7 +167,7 @@ class MeiToGraph:
                 # If it is not a chord, add the Event
                 if not chord:
                     self._add_event_from_facts( # Add the Fact in an Event
-                        attrib['id'] + '_event',
+                        attrib['id'],
                         'note',
                         int(attrib['dur']),
                         current_voice_nb
@@ -338,8 +338,15 @@ class MeiToGraph:
             self.score.voices[voice_index].set_event(self.current_events[voice_index])
 
     def _add_last_events(self):
-        '''Adds the last event for each voice.'''
+        '''
+        Adds the last event for each voice.
+        Also reset `Voice.n` and `Measure.n`.
+        '''
     
         for k in range(len(self.current_events)):
             self._add_event_from_facts(f'END_voice_{k + 1}', 'END', 0, k + 1)
+
+        # Reset counter
+        Voice.n = 1
+        Measure.n = 1
 
