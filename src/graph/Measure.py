@@ -60,14 +60,16 @@ class Measure:
     
         self.events[voice_index].append(e) # Adding the event in its voice
 
-    def to_cypher(self, parent_cypher_id: str, previous_Measure=None) -> str:
+    def to_cypher(self, parent_cypher_id: str, previous_Measures=[]) -> str:
         '''
         Returns the CREATE cypher clauses, that creates the Measure node, its child nodes and links (see `Event.to_cypher`),
         and the link from the previous Measure (if it exists).
 
         Input:
-            - parent_cypher_id : the cypher id of the parent (a `TopRhythmic`) ;
-            - previous_Measure: the previous Measure. If this is the first Measure, pass None instead.
+            - parent_cypher_id  : the cypher id of the parent (a `TopRhythmic`) ;
+            - previous_Measures : the list of previous Measures, excluding the current one.
+
+        The list of previous measures is needed because it is possible that there is no notes in a measure for a voice, so to link the first event with the last one, we need to check all the way to the first measure (in the worst case)
 
         Order of creation :
             - Measure ;
@@ -85,15 +87,24 @@ class Measure:
         # Create the events
         for voice_index, events_of_voice in enumerate(self.events):
             for k, e in enumerate(events_of_voice):
-                if k == 0:
-                    prev = None
-                else:
+                if k == 0: # This is the first event of the measure
+                    # Try to get the last event (which can not be in the last measure, but futher than that)
+                    i = -1 # Previous measure index
+                    while (-len(previous_Measures) <= i and len(previous_Measures[i].events) <= voice_index):
+                        i -= 1
+
+                    if i < -len(previous_Measures):
+                        prev = None
+                    else:
+                        prev = previous_Measures[i].events[voice_index][-1]
+
+                else: # There is a previous Event in this measure
                     prev = self.events[voice_index][k - 1]
 
                 c += '\n' + e.to_cypher(self.cypher_id, prev)
 
         # Create link to previous Measure
-        if previous_Measure != None:
-            c += '\n' + make_create_link_string(previous_Measure.cypher_id, self.cypher_id, 'NEXTMeasure')
+        if len(previous_Measures) > 1:
+            c += '\n' + make_create_link_string(previous_Measures[-1].cypher_id, self.cypher_id, 'NEXTMeasure')
     
         return c

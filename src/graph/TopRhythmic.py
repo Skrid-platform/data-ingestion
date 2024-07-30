@@ -74,11 +74,13 @@ class TopRhythmic:
 
         # Create the measures
         for k, m in enumerate(self.measures):
-            if k == 0:
-                prev = None
-            else:
-                prev = self.measures[k - 1]
+            # if k == 0:
+            #     prev = None
+            # else:
+            #     prev = self.measures[k - 1]
 
-            c += '\n' + m.to_cypher(self.cypher_id, prev)
+            previous_measures = self.measures[:k]
+
+            c += '\n' + m.to_cypher(self.cypher_id, previous_measures)
 
         return c
