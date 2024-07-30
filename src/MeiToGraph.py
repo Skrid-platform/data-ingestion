@@ -158,6 +158,11 @@ class MeiToGraph:
                     except ValueError as err:
                         log('err', f'MeiToGraph: parse_mei: adding note: dots: error when trying to convert dot value to int. Dots will be set to 0 for this note.\nCurrent file : "{self.fn}".\nCurrent note id : "{attrib["id"]}".')
 
+                # Get grace status
+                grace = None
+                if 'grace' in attrib:
+                    grace = attrib['grace']
+
                 # Create note
                 self._add_fact( # Add the note as a Fact
                     attrib['id'] + '_fact',
@@ -168,7 +173,8 @@ class MeiToGraph:
                     dots,
                     accid,
                     accid_ges,
-                    current_syllable
+                    current_syllable,
+                    grace
                 )
 
                 # Reset current syllable
@@ -199,7 +205,7 @@ class MeiToGraph:
                         log('err', f'MeiToGraph: parse_mei: adding rest: dots: error when trying to convert dot value to int. Dots will be set to 0 for this rest.\nCurrent file : "{self.fn}".\nCurrent rest id : "{attrib["id"]}".')
 
                 # Add note fact and event
-                self._add_fact(attrib['id'] + '_fact', 'rest', None, None, int(attrib['dur']), dots, None, None, None)
+                self._add_fact(attrib['id'] + '_fact', 'rest', None, None, int(attrib['dur']), dots, None, None, None, None)
                 self._add_event_from_facts(attrib['id'], 'rest', int(attrib['dur']), dots, current_voice_nb)
             
         self._add_last_events()
@@ -295,7 +301,7 @@ class MeiToGraph:
         self.current_measure = Measure(self.fn_without_path, id_, events=[])
         self.top_rhythmic.add_measure(self.current_measure)
 
-    def _add_fact(self, id_: str, type_: str, class_: str|None, octave: int|None, duration: int, dots: int, accid: str|None, accid_ges: str|None, syllable: str|None):
+    def _add_fact(self, id_: str, type_: str, class_: str|None, octave: int|None, duration: int, dots: int, accid: str|None, accid_ges: str|None, syllable: str|None, grace: None|str):
         '''
         Creates and adds a `Fact` to `self.facts`. Called when on tag `note` in a chord.
 
@@ -307,11 +313,12 @@ class MeiToGraph:
         - dots      : the number of dots on the note ;
         - accid     : a potential accidental on the note ;
         - accid_ges : a potential accidental on the key ;
-        - syllable  : the potential syllable attatched to a note.
+        - syllable  : the potential syllable attatched to a note ;
+        - grace     : If not None, indicate that the note is a grace note, and give its type.
         '''
     
         #-Create Fact
-        f = Fact(self.fn_without_path, id_, type_, class_, octave, duration, dots, accid, accid_ges, syllable)
+        f = Fact(self.fn_without_path, id_, type_, class_, octave, duration, dots, accid, accid_ges, syllable, grace)
         self.facts.append(f)
 
     def _add_event_from_facts(self, id_: str, type_: str, duration: int, dots: int|None, voice_nb: int):

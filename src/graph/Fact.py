@@ -19,7 +19,7 @@ from src.utils import calculate_note_interval, get_frequency
 class Fact:
     '''Represent a `Fact` node (note)'''
 
-    def __init__(self, source: str, id_: str, type_: str, class_: str|None, octave: int|None, duration: int, dots: int = 0, accid: str|None = None, accid_ges: str|None = None, syllable: str|None = None, instrument: str|None = None):
+    def __init__(self, source: str, id_: str, type_: str, class_: str|None, octave: int|None, duration: int, dots: int = 0, accid: str|None = None, accid_ges: str|None = None, syllable: str|None = None, grace: str|None = None, instrument: str|None = None):
         '''
         Initate Fact.
 
@@ -33,6 +33,7 @@ class Fact:
         - accid      : None if no accidental on the note, 's' for sharp, and 'f' for flat ;
         - accid_ges  : same as above, but represent an accidental on the staff, not on the note ;
         - syllable   : the potential syllable pronounced on this note (None if none) ;
+        - grace      : if not None, indicate that the note is a grace note, and give its type (often 'acc') ;
         - instrument : the instrument.
         '''
 
@@ -46,6 +47,7 @@ class Fact:
         self.accid = accid
         self.accid_ges = accid_ges
         self.syllable = syllable
+        self.grace = grace
         self.instrument = instrument
 
         self._check();
