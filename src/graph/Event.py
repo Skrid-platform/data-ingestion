@@ -15,6 +15,8 @@
 from src.graph.Fact import Fact
 from src.graph.utils_graph import make_create_string, make_create_link_string
 
+from src.utils import calculate_note_interval
+
 ##-Main
 class Event:
     '''Represent an `Event` node'''
@@ -111,6 +113,17 @@ class Event:
 
         # Create link to previous Event
         if previous_Event != None:
-            c += '\n' + make_create_link_string(previous_Event.cypher_id, self.cypher_id, 'NEXT', {'duration': previous_Event.duration}) #TODO: add interval here !
+            data = {'duration': previous_Event.duration}
+
+            # Calculate interval
+            if len(previous_Event.facts) > 0 and len(self.facts) > 0:
+                f1 = previous_Event.facts[0]
+                f2 = self.facts[0]
+
+                if f1.type_ == 'note' and f2.type_ == 'note':
+                    interval = calculate_note_interval(f1.class_, f1.octave, f2.class_, f2.octave) / 2
+                    data['interval'] = interval
+
+            c += '\n' + make_create_link_string(previous_Event.cypher_id, self.cypher_id, 'NEXT', data)
     
         return c

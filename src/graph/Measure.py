@@ -104,7 +104,7 @@ class Measure:
                 c += '\n' + e.to_cypher(self.cypher_id, prev)
 
         # Create link to previous Measure
-        if len(previous_Measures) > 1:
+        if len(previous_Measures) > 0:
             c += '\n' + make_create_link_string(previous_Measures[-1].cypher_id, self.cypher_id, 'NEXTMeasure')
     
         return c

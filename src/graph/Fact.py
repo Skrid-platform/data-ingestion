@@ -84,7 +84,7 @@ class Fact:
         if self.class_ == None or (self.type_ == 'note' and self.class_ not in 'abcdefg'):
             raise ValueError(f'Fact: `class_` attribute has to be in (a, b, c, d, e, f, g), but not "{self.class_}" !')
 
-        if type(self.octave) != int or self.octave < 0 or self.octave > 9: #TODO: I am not certain of the boundaries
+        if type(self.octave) != int or self.octave < 0 or self.octave > 9:
             raise ValueError(f'Fact: `octave` attribute has to be an int, but not "{self.octave} !"')
 
         if self.accid not in (None, 's', 'f'):
