@@ -132,7 +132,7 @@ class MeiToGraph:
                 chord = False
 
                 # Adding all the notes in an Event
-                self._add_event_from_facts(attrib['id'], 'note', current_chord_duration, current_voice_nb)
+                self._add_event_from_facts(attrib['id'], 'note', current_chord_duration, None, current_voice_nb)
 
             #-Notes
             elif event == 'end' and tag == 'note': # Parsing on end to have syllables already seen
@@ -144,18 +144,28 @@ class MeiToGraph:
                 if 'accid.ges' in attrib:
                     accid_ges = attrib['accid.ges']
 
-                # Create note
+                # Get duration
                 if chord:
                     duration = current_chord_duration
                 else:
                     duration = int(attrib['dur'])
 
+                # Get dots
+                dots = 0
+                if 'dots' in attrib:
+                    try:
+                        dots = int(attrib['dots'])
+                    except ValueError as err:
+                        log('err', f'MeiToGraph: parse_mei: adding note: dots: error when trying to convert dot value to int. Dots will be set to 0 for this note.\nCurrent file : "{self.fn}".\nCurrent note id : "{attrib["id"]}".')
+
+                # Create note
                 self._add_fact( # Add the note as a Fact
                     attrib['id'] + '_fact',
                     'note',
                     attrib['pname'],
                     int(attrib['oct']),
                     duration,
+                    dots,
                     accid,
                     accid_ges,
                     current_syllable
@@ -170,6 +180,7 @@ class MeiToGraph:
                         attrib['id'],
                         'note',
                         int(attrib['dur']),
+                        dots,
                         current_voice_nb
                     )
 
@@ -179,8 +190,17 @@ class MeiToGraph:
             
             #-Rest
             elif event == 'start' and tag == 'rest':
-                self._add_fact(attrib['id'], 'rest', None, None, int(attrib['dur']), None, None, None)
-                self._add_event_from_facts(attrib['id'] + '_event', 'rest', int(attrib['dur']), current_voice_nb)
+                # Get dots
+                dots = 0
+                if 'dots' in attrib:
+                    try:
+                        dots = int(attrib['dots'])
+                    except ValueError as err:
+                        log('err', f'MeiToGraph: parse_mei: adding rest: dots: error when trying to convert dot value to int. Dots will be set to 0 for this rest.\nCurrent file : "{self.fn}".\nCurrent rest id : "{attrib["id"]}".')
+
+                # Add note fact and event
+                self._add_fact(attrib['id'] + '_fact', 'rest', None, None, int(attrib['dur']), dots, None, None, None)
+                self._add_event_from_facts(attrib['id'], 'rest', int(attrib['dur']), dots, current_voice_nb)
             
         self._add_last_events()
 
@@ -275,7 +295,7 @@ class MeiToGraph:
         self.current_measure = Measure(self.fn_without_path, id_, events=[])
         self.top_rhythmic.add_measure(self.current_measure)
 
-    def _add_fact(self, id_: str, type_: str, class_: str|None, octave: int|None, duration: int, accid: str|None, accid_ges: str|None, syllable: str|None):
+    def _add_fact(self, id_: str, type_: str, class_: str|None, octave: int|None, duration: int, dots: int, accid: str|None, accid_ges: str|None, syllable: str|None):
         '''
         Creates and adds a `Fact` to `self.facts`. Called when on tag `note` in a chord.
 
@@ -284,22 +304,24 @@ class MeiToGraph:
         - class_    : the class of the note (e.g 'c', 'd', ...) ;
         - octave    : the octave of the note ;
         - duration  : the duration of the note (1 for whole, 2 for half, ...) ;
+        - dots      : the number of dots on the note ;
         - accid     : a potential accidental on the note ;
         - accid_ges : a potential accidental on the key ;
         - syllable  : the potential syllable attatched to a note.
         '''
     
         #-Create Fact
-        f = Fact(self.fn_without_path, id_, type_, class_, octave, duration, accid, accid_ges, syllable)
+        f = Fact(self.fn_without_path, id_, type_, class_, octave, duration, dots, accid, accid_ges, syllable)
         self.facts.append(f)
 
-    def _add_event_from_facts(self, id_: str, type_: str, duration: int, voice_nb: int):
+    def _add_event_from_facts(self, id_: str, type_: str, duration: int, dots: int|None, voice_nb: int):
         '''
         Creates a new `Event` with all the facts from `self.facts` in it, and add it to the current measure.
 
         - id_      : the mei id of the note ;
         - type_    : either 'note' for a note, or 'rest' for a rest ;
         - duration : the duration of the note (1 for whole, 2 for half, ...) ;
+        - dots     : the number of dots on the note. For a chord, None is given, and it is retreived using the max from facts ;
         - voice_nb : the number of the current voice. First voice is number 1 (not 0).
         '''
 
@@ -318,8 +340,16 @@ class MeiToGraph:
         else:
             end = start + (1 / duration)
 
+        #-Get dots
+        if dots == None:
+            dots = 0
+
+            for f in self.facts:
+                if f.dots > dots:
+                    dots = f.dots
+
         #-Create Event
-        self.current_events[voice_index] = Event(self.fn_without_path, id_, type_, duration, start, start, end, facts=self.facts, voice_nb=voice_nb)
+        self.current_events[voice_index] = Event(self.fn_without_path, id_, type_, duration, dots, start, start, end, facts=self.facts, voice_nb=voice_nb)
 
         #-Add event to current measure
         if self.current_measure == None:
@@ -344,7 +374,7 @@ class MeiToGraph:
         '''
     
         for k in range(len(self.current_events)):
-            self._add_event_from_facts(f'END_voice_{k + 1}', 'END', 0, k + 1)
+            self._add_event_from_facts(f'END_voice_{k + 1}', 'END', 0, 0, k + 1)
 
         # Reset counter
         Voice.n = 1

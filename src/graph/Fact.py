@@ -13,13 +13,13 @@
 
 ##-Import
 from src.graph.utils_graph import make_create_string, make_create_link_string
-from src.utils import get_frequency
+from src.utils import calculate_note_interval, get_frequency
 
 ##-Main
 class Fact:
     '''Represent a `Fact` node (note)'''
 
-    def __init__(self, source: str, id_: str, type_: str, class_: str|None, octave: int|None, duration: int, accid: str|None = None, accid_ges: str|None = None, syllable: str|None = None, instrument: str|None = None):
+    def __init__(self, source: str, id_: str, type_: str, class_: str|None, octave: int|None, duration: int, dots: int = 0, accid: str|None = None, accid_ges: str|None = None, syllable: str|None = None, instrument: str|None = None):
         '''
         Initate Fact.
 
@@ -29,6 +29,7 @@ class Fact:
         - class_     : the class of the note (e.g 'c', 'd', ...). Set it to None for a rest ;
         - octave     : the octave of the note ;
         - duration   : the duration of the note (1 for whole, 2 for half, 4 for fourth, ...) ;
+        - dots       : the number of dots on the note ;
         - accid      : None if no accidental on the note, 's' for sharp, and 'f' for flat ;
         - accid_ges  : same as above, but represent an accidental on the staff, not on the note ;
         - syllable   : the potential syllable pronounced on this note (None if none) ;
@@ -40,7 +41,8 @@ class Fact:
         self.type_ = type_
         self.class_ = class_
         self.octave = octave
-        self.dur = duration
+        self.dur = duration # self.dur is 1, 2, 4, ... and self.duration will 1, .5, .25, ... (latter calculated later in _calculate_other_values).
+        self.dots = dots
         self.accid = accid
         self.accid_ges = accid_ges
         self.syllable = syllable
@@ -59,12 +61,15 @@ class Fact:
             self.name = self.class_.upper() + str(self.octave)
 
         if self.type_ != 'END':
-            self.duration = 1 / self.dur #TODO: add dots
+            self.duration = 1 / self.dur
+
+            # Adding the duration of the dots to `self.duration`
+            for k in range(self.dots):
+                self.duration += 1 / (self.dur * pow(2, k + 1))
 
         if self.type_ == 'note' and self.class_ != None and self.octave != None:
             self.frequency = get_frequency(self.class_, self.octave)
-
-        #TODO: calculate frequency, half_tones_from_a4, half_tones_diatonic_from_a4, alteration_in_tones, alteration_in_half_tones.
+            self.halfTonesFromA4 = calculate_note_interval('a', 4, self.class_, self.octave) # But is this useful ?
 
     def _check(self):
         '''
@@ -86,6 +91,9 @@ class Fact:
 
         if type(self.octave) != int or self.octave < 0 or self.octave > 9:
             raise ValueError(f'Fact: `octave` attribute has to be an int, but not "{self.octave} !"')
+
+        if type(self.dots) != int or self.dots < 0:
+            raise ValueError(f'Fact: `dots` should be a positive int, but "{self.dots}" found !')
 
         if self.accid not in (None, 's', 'f'):
             raise ValueError(f'Fact: `accid` attribute has to be in (None, "s", "f"), but "{self.accid}" was found !')

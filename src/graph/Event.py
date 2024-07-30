@@ -21,7 +21,7 @@ from src.utils import calculate_note_interval
 class Event:
     '''Represent an `Event` node'''
 
-    def __init__(self, source: str, id_: str, type_: str, duration: int, pos: float, start: float, end: float, facts: list[Fact] = [], voice_nb: int = 1, instrument: str|None = None):
+    def __init__(self, source: str, id_: str, type_: str, duration: int, dots: int, pos: float, start: float, end: float, facts: list[Fact] = [], voice_nb: int = 1, instrument: str|None = None):
         '''
         Initate Event.
 
@@ -29,6 +29,7 @@ class Event:
         - id_        : the mei id of the Event node ;
         - type_      : the type of the fact. Can be 'note', 'rest' ;
         - duration   : the duration of the note (1 for whole, 2 for half, 4 for fourth, ...) ;
+        - dots       : the number of dots on the note ;
         - pos        : ? seems to correspond to `start` ; TODO
         - start      : the start time of the event (1 correspond to a whole, 0.5 to a half note, ...) ;
         - end        : same but for the end of the event ;
@@ -40,7 +41,8 @@ class Event:
         self.source = source
         self.id_ = id_
         self.type_ = type_
-        self.dur = duration
+        self.dur = duration # self.dur is 1, 2, 4, ... and self.duration will 1, .5, .25, ... (latter calculated later in _calculate_other_values).
+        self.dots = dots
         self.pos = pos
         self.start = start
         self.end = end
@@ -58,7 +60,11 @@ class Event:
         self.cypher_id = self.id_ + '_' + self.inputfile
 
         if self.type_ != 'END':
-            self.duration = 1 / self.dur #TODO: add dots
+            self.duration = 1 / self.dur
+
+            # Adding the duration of the dots to `self.duration`
+            for k in range(self.dots):
+                self.duration += 1 / (self.dur * pow(2, k + 1))
 
     def _check(self):
         '''
@@ -71,6 +77,9 @@ class Event:
 
         if type(self.dur) != int or self.dur < 0:
             raise ValueError(f'Fact: `duration` attribute has to be a float, but not "{self.duration}" !')
+
+        if type(self.dots) != int or self.dots < 0:
+            raise ValueError(f'Fact: `dots` should be a positive int, but "{self.dots}" found !')
 
     def add_fact(self, f: Fact):
         '''
