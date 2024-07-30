@@ -72,10 +72,17 @@ class ParserUi:
 
         #------Main parser
         #---Init
+        examples = 'Examples :'
+        examples += '\n\tconvert `file.mei`                       : ./main.py file.mei'
+        examples += '\n\tconvert all mei files in the mei/ folder : ./main.py mei/*.mei'
+        examples += '\n\tconvert all mei files in the sub path    : ./main.py **/*.mei'
+        examples += '\n\tconvert all, overwrite, save in cypher/,'
+        examples += '\n\t generate .cql, show progression         : ./main.py -nv -q load_all.cql -o cypher/ **/*.mei'
+
         self.parser = argparse.ArgumentParser(
             prog='Musypher',
             description='Compiles fuzzy queries to cypher queries',
-            # epilog='Examples :\n\tSearchWord word\n\tSearchWord "example of string" -e .py;.txt\n\tSearchWord someword -x .pyc -sn', #TODO: add examples
+            epilog=examples,
             formatter_class=argparse.RawDescriptionHelpFormatter
         )
 
@@ -160,6 +167,10 @@ class ParserUi:
                     log('info', f'Conversion for the file "{f}" has been canceled ! {round((k + 1) / len(args.files) * 100)}% done !')
         
         if args.cql != None:
+            if len(dump_files) == 0:
+                log('warn', f'Generation of {args.cql} canceled as no file was generated !')
+                return
+
             self._make_cql_file(dump_files, args.cql, args.no_confirmation, args.verbose)
 
     def _make_cql_file(self, dump_files: list[str], fn_out: str, no_confirmation: bool = False, verbose: bool = False):

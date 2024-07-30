@@ -239,10 +239,15 @@ class MeiToGraph:
                 log('warn', f'MeiToGraph: _create_score: `self.composer` is not defined')
     
         if self.collection == None:
-            self.collection = ''
+            if self.composer != None:
+                self.collection = self.composer
+                if self.verbose:
+                    log('warn', f'MeiToGraph: _create_score: ({self.fn}): using `composer` instead of `collection` as the latter does not exists in the file')
+            else:
+                self.collection = ''
 
-            if self.verbose:
-                log('warn', f'MeiToGraph: _create_score: `self.collection` is not defined')
+                if self.verbose:
+                    log('warn', f'MeiToGraph: _create_score: ({self.fn}): `self.collection` is not defined')
 
         self.top_rhythmic = TopRhythmic(self.fn_without_path, self.composer, self.collection, measures=[])
         self.score = Score(self.fn_without_path, self.score_id, self.composer, self.collection, voices=[])
