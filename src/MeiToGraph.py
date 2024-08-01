@@ -136,6 +136,11 @@ class MeiToGraph:
 
             #-Notes
             elif event == 'end' and tag == 'note': # Parsing on end to have syllables already seen
+                # Ensure that 'pname' is in `attrib`
+                if 'pname' not in attrib:
+                    log('error', f'MeiToGraph: parse_mei: adding note: attribute "pname" not found !\nCurrent file : "{self.fn}".\nCurrent note id : "{attrib["id"]}".\nAttributes : {attrib}.\nNote that this note will be IGNORED !\nIf the mei file was converted using verovio, maybe try to convert with mscore (MuseScore) instead')
+                    continue
+
                 # Check accidentals
                 accid = None
                 accid_ges = None
