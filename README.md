@@ -1,76 +1,112 @@
-# Musypher
-<!-- Convert XML MEI music files to cypher dumps that can be used to load a graph representing the music score in the Neo4j database. -->
-Converts a music score, modelled by a XML file that respects the dialect MEI, in a Cypher dump, which can be used in the graph database management system Neo4J in order to produce a graph representation of the music score.
+# 🎼 Data Ingestion Tool for MEI → Cypher
 
-The primary goal of this software is to generate a graph database for the [SKRID](https://github.com/lasercata/SKRIDPlatform) interface.
+This tool converts music scores modeled in the [MEI XML dialect](https://music-encoding.org/) into **Cypher dumps**, which can be used to populate a **Neo4j** graph database (tested with version **4.2.1.X**). It powers the **graph-based representation** of digital scores used in the [SKRID project](https://gitlab.inria.fr/skrid).
 
-## Project structure
+---
+
+## ✨ Features
+
+- Parses **MEI** files into internal graph structures.
+- Translates internal representations into **Cypher queries**.
+- Designed for integration with **Neo4j** for symbolic music analysis.
+- Includes CLI for file-based operations.
+
+---
+
+## 🚀 Getting Started
+
+### 1. Clone the repository
+
+```bash
+git clone https://gitlab.inria.fr/skrid/data-ingestion.git
+cd data-ingestion
 ```
-├── main.py                 Main file
+
+### 2. Dependencies
+Requires Python 3.6+
+
+(You can use a virtual environment if desired)
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+---
+
+### 🧪 Usage
+
+Run the converter
+```bash
+python3 main.py -h
+```
+
+CLI Options
+
+```text
+usage: python3 main.py [-h] [-V] [-v] [-n] [-o OUTPUT_FOLDER] [-q CQL] files [files ...]
+
+Compiles MEI files into Cypher queries for Neo4j ingestion.
+
+positional arguments:
+  files                   MEI files to convert. Appends '_dump.cypher' to basename.
+
+options:
+  -h, --help              Show this help message and exit
+  -V, --version           Show version and exit
+  -v, --verbose           Print logs during conversion
+  -n, --no-confirmation   Skip confirmation prompts
+  -o, --output-folder     Output folder for the generated Cypher files
+  -q, --cql               Also generate a .cql loader file for all output
+```
+
+---
+
+### 📁 Project Structure
+
+```text
+data-ingestion/
+├── main.py                 # Main CLI entry point
 ├── src/
-│   ├── graph/              Internal graph representation of the scores
+│   ├── graph/              # Internal graph model components
 │   │   ├── Event.py
 │   │   ├── Fact.py
 │   │   ├── Measure.py
 │   │   ├── Score.py
 │   │   ├── TopRhythmic.py
-│   │   ├── utils_graph.py
-│   │   └── Voice.py
-│   │
-│   ├── MeiToGraph.py       Parser of the MEI files, uses files in `graph/` to represent the parsed result
-│   ├── ParserUi.py         User interface (argument parser)
+│   │   ├── Voice.py
+│   │   └── utils_graph.py
+│   ├── MeiToGraph.py       # MEI parser
+│   ├── ParserUi.py         # CLI logic
 │   └── utils.py
 │
-├── mei/                    Examples MEI files to test to program
-│
-├── README.md
-└── TODO.md
+├── mei/                    # Sample MEI files for testing
+├── LICENSE.md              # Project license
+├── README.md               # You’re reading it!
+└── TODO.md                 # Development roadmap
+
 ```
 
-General principle : Each MEI file is parsed and converted to an internal graph representation on the fly, and the internal graph representation is then converted to a cypher dump.
+### 🛠️ Development Notes
 
-## Usage
-### Setup
-Get the code :
-```
-git clone --depth=1 https://github.com/lasercata/Musypher.git
-cd Musypher
-```
+Each MEI file goes through a two-phase process:
 
-Make the main file executable :
-```
-chmod u+x main.py
-```
+1. Parsing: The file is parsed into an internal object graph (with classes like Score, Voice, Measure, etc.).
 
-### Run
-```
-$ ./main.py -h
-usage: Musypher [-h] [-V] [-v] [-n] [-o OUTPUT_FOLDER] [-q CQL] files [files ...]
+2. Exporting: That graph is compiled into Cypher statements for Neo4j ingestion.
 
-Compiles fuzzy queries to cypher queries
+This modular separation allows you to inspect or manipulate the graph before export if needed.
 
-positional arguments:
-  files                 the MEI files to convert. For each file, it adds "_dump.cypher" to the
-                        basename of the file.
-
-options:
-  -h, --help            show this help message and exit
-  -V, --version         show version and exit
-  -v, --verbose         print logs when a file is converted
-  -n, --no-confirmation
-                        Do not ask for confirmation before overwriting a file
-  -o OUTPUT_FOLDER, --output-folder OUTPUT_FOLDER
-                        save all dumps in the given folder
-  -q CQL, --cql CQL     If enabled, also create the .cql file (that is useful to load all the
-                        generated .cypher in the database)
-
-Examples :
-    convert `file.mei`                       : ./main.py file.mei
-    convert all mei files in the mei/ folder : ./main.py mei/*.mei
-    convert all mei files in the sub path    : ./main.py **/*.mei
-    convert all, overwrite, save in cypher/,
-    generate .cql, show progression         : ./main.py -nv -q load_all.cql -o cypher/ **/*.mei
-```
+---
 
 ## TODO
-See [TODO](TODO.md)
+
+See [TODO.md](TODO.md) for the current list of planned enhancements, open issues, and known limitations.
+
+---
+
+## License
+
+This project is distributed under the MIT License.  
+See [LICENSE](./LICENSE) for details.  
+(Copyright © 2023–2025 IRISA)

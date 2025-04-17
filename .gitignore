@@ -167,3 +167,6 @@ cypher/*
 !cypher/.gitkeep
 mei/*
 !mei/.gitkeep
+!mei/Joseph_Mahe/*
+!mei/Luzel/*
+!mei/other/*
