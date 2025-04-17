@@ -69,7 +69,7 @@ Examples :
     convert all mei files in the mei/ folder : ./main.py mei/*.mei
     convert all mei files in the sub path    : ./main.py **/*.mei
     convert all, overwrite, save in cypher/,
-     generate .cql, show progression         : ./main.py -nv -q load_all.cql -o cypher/ **/*.mei
+    generate .cql, show progression         : ./main.py -nv -q load_all.cql -o cypher/ **/*.mei
 ```
 
 ## TODO

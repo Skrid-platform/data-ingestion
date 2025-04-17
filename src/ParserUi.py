@@ -14,7 +14,8 @@
 ##-Imports
 #---General
 import argparse
-from os.path import isfile, isdir, abspath
+from os.path import isfile, isdir, abspath, join
+import os
 
 #---Project
 from src.MeiToGraph import MeiToGraph
@@ -157,7 +158,12 @@ class ParserUi:
                     log('info', f'Converting file "{f}" to "{dump_fn}" ...')
 
                 converter = MeiToGraph(f, args.verbose)
-                res = converter.to_file(dump_fn, args.no_confirmation)
+
+                res = None
+                try:
+                    res = converter.to_file(dump_fn, args.no_confirmation)
+                except:
+                    print(f"Something went wrong for {f}")
 
                 if res:
                     log('info', f'File "{f}" has been converted to cypher in file "{dump_fn}" ! {round((k + 1) / len(args.files) * 100)}% done !')
@@ -171,34 +177,50 @@ class ParserUi:
                 log('warn', f'Generation of {args.cql} canceled as no file was generated !')
                 return
 
-            self._make_cql_file(dump_files, args.cql, args.no_confirmation, args.verbose)
+            self._make_cql_file(dump_files, args.cql, 100, args.no_confirmation, args.verbose)
 
-    def _make_cql_file(self, dump_files: list[str], fn_out: str, no_confirmation: bool = False, verbose: bool = False):
+    def _make_cql_file(self, dump_files: list[str], output_dir: str, dump_per_file: int = 0, no_confirmation: bool = False, verbose: bool = False):
         '''
-        Creates the .cql file that is used to load all the dump files in the database.
+        Creates .cql files that are used to load dump files into the database.
 
-        - dump_files      : the list of the .cypher filenames ;
-        - fn_out          : the output filename ;
-        - no_confirmation : if True, do not ask for confirmation to overwrite the file if it already exists ;
+        - dump_files      : the list of the .cypher filenames;
+        - output_dir      : the output directory to save the .cql files;
+        - dump_per_file   : the number of dump files per .cql file (0 means all in one file);
+        - no_confirmation : if True, do not ask for confirmation to overwrite files if they already exist;
         - verbose         : if True, log errors and warnings.
         '''
-    
-        if not write_file(fn_out, '', no_confirmation, verbose):
-            return
 
-        with open(fn_out, 'w') as f:
-            f.write('CALL apoc.cypher.runFiles([')
+        # Ensure the output directory exists
+        os.makedirs(output_dir, exist_ok=True)
 
-            for k, dump_file in enumerate(dump_files):
-                abs_path = abspath(dump_file)
-                f.write(f"'{abs_path}'")
+        # Helper function to write CQL content to a file
+        def write_cql_file(file_list, file_index):
+            cql_filename = f'output_{file_index + 1}.cql'
+            cql_filepath = join(output_dir, cql_filename)
 
-                if k != len(dump_files) - 1:
-                    f.write(', ')
+            if not write_file(cql_filepath, '', no_confirmation, verbose):
+                return
 
-            f.write('], {statistics: false});')
+            with open(cql_filepath, 'w') as f:
+                f.write('CALL apoc.cypher.runFiles([')
+                for i, dump_file in enumerate(file_list):
+                    abs_path = abspath(dump_file)
+                    f.write(f"'{abs_path}'")
+                    if i != len(file_list) - 1:
+                        f.write(', ')
+                f.write('], {statistics: false});')
 
-        log('info', f'File "{fn_out}" written !')
+            log('info', f'File "{cql_filepath}" written!')
+
+        if dump_per_file > 0:
+            # Split the dump files into chunks
+            for i in range(0, len(dump_files), dump_per_file):
+                chunk = dump_files[i:i + dump_per_file]
+                write_cql_file(chunk, i // dump_per_file)
+        else:
+            # Create a single file for all dump files
+            write_cql_file(dump_files, 0)
+
 
 
     class Version(argparse.Action):

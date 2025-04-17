@@ -291,6 +291,7 @@ class MeiToGraph:
         '''
 
         v = Voice(self.fn_without_path, id_) # Create the voice
+
         self.score.add_voice(v) # Add it to the voice list
 
         self.current_events.append(None) # Add an empty event in the current events list for this new voice
@@ -336,7 +337,6 @@ class MeiToGraph:
         - dots     : the number of dots on the note. For a chord, None is given, and it is retreived using the max from facts ;
         - voice_nb : the number of the current voice. First voice is number 1 (not 0).
         '''
-
         voice_index = voice_nb - 1
 
         #-Set `start` and `end`

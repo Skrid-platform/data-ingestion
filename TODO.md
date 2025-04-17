@@ -10,5 +10,11 @@ To implement this, it is needed to change code in `Measure.to_cypher`: check if 
 
 - Add tests ;
 
+- Add new attributes : duration_ratio ;
+
+- check if intervals and halfTonesFromA4 are computed correctly ;
+
+- add rpeat bars ;
+
 ## Ideas
 - Use multiple threads (divide the files in groups of [nb threads on the current computer] and give a thread to each group) ;
