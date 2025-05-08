@@ -10,7 +10,7 @@ To implement this, it is needed to change code in `Measure.to_cypher`: check if 
 
 - Add tests ;
 
-- Add new attributes : duration_ratio ;
+- Add new attributes : duration_ratio, intervals, scale/gamme ;
 
 - check if intervals and halfTonesFromA4 are computed correctly ;
 
