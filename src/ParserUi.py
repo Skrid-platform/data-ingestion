@@ -160,10 +160,10 @@ class ParserUi:
                 converter = MeiToGraph(f, args.verbose)
 
                 res = None
-                try:
-                    res = converter.to_file(dump_fn, args.no_confirmation)
-                except:
-                    print(f"Something went wrong for {f}")
+                # try:
+                res = converter.to_file(dump_fn, args.no_confirmation)
+                # except:
+                #     print(f"Something went wrong for {f}")
 
                 if res:
                     log('info', f'File "{f}" has been converted to cypher in file "{dump_fn}" ! {round((k + 1) / len(args.files) * 100)}% done !')

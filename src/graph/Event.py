@@ -15,7 +15,7 @@
 from src.graph.Fact import Fact
 from src.graph.utils_graph import make_create_string, make_create_link_string
 
-from src.utils import calculate_note_interval
+from src.utils import calculate_note_interval, log
 
 ##-Main
 class Event:
@@ -116,10 +116,6 @@ class Event:
         for f in self.facts:
             c += '\n' + f.to_cypher(self.cypher_id)
 
-        # # Create the links to facts # This is done in Fact.to_cypher
-        # for f in self.facts:
-        #     c += '\n' + make_create_link_string(self.cypher_id, f.cypher_id, 'IS')
-
         # Create link to previous Event
         if previous_Event != None:
             data = {'duration': previous_Event.duration}
@@ -132,6 +128,11 @@ class Event:
                 if f1.type_ == 'note' and f2.type_ == 'note':
                     interval = calculate_note_interval(f1.class_, f1.octave, f2.class_, f2.octave) / 2
                     data['interval'] = interval
+
+                if f2.duration != 0:
+                    data['duration_ratio'] = f2.duration / f1.duration
+                elif self.verbose:
+                    log('warn', f'Event.to_cypher: f2.duration is zero for event {self.id}, cannot compute duration_ratio.')
 
             c += '\n' + make_create_link_string(previous_Event.cypher_id, self.cypher_id, 'NEXT', data)
     
