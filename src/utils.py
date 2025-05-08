@@ -14,7 +14,8 @@
 from sys import stderr
 from os.path import isfile
 from datetime import datetime as dt
-
+import unicodedata
+import re
 
 ##-IO
 def log(lvl: str, msg: str, use_stderr: bool = False):
@@ -62,13 +63,14 @@ def write_file(fn: str, content: str, no_confirmation: bool = False, verbose: bo
 
 def basename(f):
     '''
-    Calculates the basename of the file f (removes path and extension).
+    Calculates the basename of the file f (removes path and extension),
+    and normalizes it to be safe for filenames (ASCII only).
 
     - f : the path to the file
     '''
 
     if f[-1] == '/':
-        f = f[:-1] # Removing last '/'
+        f = f[:-1]  # Removing last '/'
 
     fn = f.split('/')[-1]
 
@@ -79,11 +81,14 @@ def basename(f):
             if fn[k] == '.':
                 index = k
                 break
+        fn = fn[:index]  # Remove extension
 
-        # Remove extension
-        fn = fn[:index]
+    # 🔽 Normalize filename to ASCII-safe
+    nfkd_form = unicodedata.normalize('NFKD', fn)
+    ascii_encoded = nfkd_form.encode('ASCII', 'ignore').decode('ASCII')
+    safe = re.sub(r'[^a-zA-Z0-9_\-\.]', '_', ascii_encoded)
 
-    return fn
+    return safe
 
 ##-Music
 def convert_note_to_sharp(note: str) -> str:
