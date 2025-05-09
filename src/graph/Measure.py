@@ -21,7 +21,7 @@ class Measure:
 
     n = 1 # Used as a counter
 
-    def __init__(self, source: str, id_: str, events: list[list[Event]] = [], repeat_sign: str | None = None):
+    def __init__(self, source: str, id_: str, events: list[list[Event]] = [], repeat_sign: str | None = None, left: str | None = None, right: str | None = None):
         '''
         Initate Measure.
 
@@ -35,6 +35,10 @@ class Measure:
         self.events = events
         if repeat_sign:
             self.repeat_sign = repeat_sign
+        if left:
+            self.left = left
+        if right:
+            self.right = right
 
 
         self._calculate_other_values();
