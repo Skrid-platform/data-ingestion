@@ -117,13 +117,16 @@ class MeiToGraph:
             #---Notes
             #-Measures
             elif event == 'start' and tag == 'measure':
-                repeat_sign = None
+                repeat_sign, left, right = None, None, None
                 if 'left' in attrib and attrib['left'] == 'rptstart':
                     repeat_sign = 'start'
+                    left = 'rptstart'
                 elif 'right' in attrib and attrib['right'] == 'rptend':
                     repeat_sign = 'end'
-
-                self._add_measure(attrib['id'], repeat_sign)
+                    right = 'rptend'
+                elif 'right' in attrib and attrib['right'] == 'end':
+                    right = 'end'
+                self._add_measure(attrib['id'], repeat_sign, left, right)
 
             #-Voice nb
             elif event == 'start' and tag == 'staff':
@@ -302,14 +305,14 @@ class MeiToGraph:
 
         self.current_events.append(None) # Add an empty event in the current events list for this new voice
 
-    def _add_measure(self, id_, repeat_sign=None):
+    def _add_measure(self, id_, repeat_sign=None, left=None, right=None):
         '''
         Creates and adds a new `Measure` to `self.top_rhythmic`.
 
         - id_ : the measure id.
         '''
 
-        self.current_measure = Measure(self.fn_without_path, id_, events=[], repeat_sign=repeat_sign)
+        self.current_measure = Measure(self.fn_without_path, id_, events=[], repeat_sign=repeat_sign, left=left, right=right)
         self.top_rhythmic.add_measure(self.current_measure)
 
     def _add_fact(self, id_: str, type_: str, class_: str|None, octave: int|None, duration: int, dots: int, accid: str|None, accid_ges: str|None, syllable: str|None, grace: None|str):
