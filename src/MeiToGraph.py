@@ -82,6 +82,7 @@ class MeiToGraph:
         current_voice_nb = 0
         current_chord_duration = 0
         current_syllable = None # Used to store syllables. None when there is no syllable for the current note.
+        score_created = False # Used to instanciate only once the score and top rhythmic.
 
         for event, elem in ET.iterparse(self.fn, ['start', 'end']):
             tag = remove_namespace_from_string(elem.tag)
@@ -93,13 +94,14 @@ class MeiToGraph:
                 self._handle_persName(attrib['role'], elem.text)
 
             #-Score id
-            elif event == 'start' and tag == 'staffGrp':
+            elif (not score_created) and event == 'start' and tag == 'staffGrp':
                 if 'id' in attrib:
                     self.score_id = attrib['id']
                 else:
                     self.score_id = 'StaffGroup1'
 
                 self._create_score_and_top_rhythmic()
+                score_created = True
 
             #-Voices definition
             elif event == 'start' and tag == 'staffDef':

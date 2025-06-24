@@ -143,7 +143,7 @@ class ParserUi:
 
         self.parser.add_argument(
             'files',
-            nargs='*',
+            nargs='+',
             help='the MEI files to convert. For each file, it adds "_dump.cypher" to the basename of the file.'
         )
 
@@ -194,15 +194,15 @@ class ParserUi:
                     res = None
                     try:
                         res = converter.to_file(dump_fn, args.no_confirmation)
-                    except:
-                        print(f"Something went wrong for {f}")
+                    except Exception as err:
+                        print(f'Something went wrong for "{f}": {err}')
 
                     if res:
-                        log('info', f'File "{f}" has been converted to cypher in file "{dump_fn}" ! {round((k + 1) / len(args.files) * 100)}% done !')
+                        log('info', f'File "{f}" has been converted to cypher in file "{dump_fn}" ! {round((k + 1) / len(args.files) * 100)}% of files done !')
                         dump_files.append(dump_fn)
 
                     else:
-                        log('info', f'Conversion for the file "{f}" has been canceled ! {round((k + 1) / len(args.files) * 100)}% done !')
+                        log('info', f'Conversion for the file "{f}" has been canceled ! {round((k) / len(args.files) * 100)}% of files done !')
             
             if args.cql != None:
                 if len(dump_files) == 0:

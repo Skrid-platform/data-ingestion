@@ -97,11 +97,11 @@ class Fact:
         if type(self.dots) != int or self.dots < 0:
             raise ValueError(f'Fact: `dots` should be a positive int, but "{self.dots}" found !')
 
-        if self.accid not in (None, 's', 'f', 'n'):
-            raise ValueError(f'Fact: `accid` attribute has to be in (None, "s", "f"), but "{self.accid}" was found !')
+        if self.accid not in (None, 's', 'f', 'n', 'x'):
+            raise ValueError(f'Fact: `accid` attribute has to be in (None, "s", "f", "n", "x"), but "{self.accid}" was found !')
 
-        if self.accid_ges not in (None, 's', 'f', 'n'):
-            raise ValueError(f'Fact: `accid_ges` attribute has to be in (None, "s", "f"), but "{self.accid_ges}" was found !')
+        if self.accid_ges not in (None, 's', 'f', 'n', 'x'):
+            raise ValueError(f'Fact: `accid_ges` attribute has to be in (None, "s", "f", "n", "x"), but "{self.accid_ges}" was found !')
 
     def to_cypher(self, parent_cypher_id: str) -> str:
         '''Returns the CREATE cypher clause that creates the Fact node and the link from its Event parent.'''
