@@ -111,7 +111,6 @@ class Measure:
                     if -i > len(previous_Measures):
                         prev = None
                     else:
-                        print(voice_index, len(previous_Measures), previous_Measures[i].events[voice_index])
                         prev = previous_Measures[i].events[voice_index][-1]
 
                 else: # There is a previous Event in this measure

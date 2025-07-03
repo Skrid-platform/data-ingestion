@@ -91,47 +91,58 @@ def basename(f):
     return safe
 
 ##-Music
-def convert_note_to_sharp(note: str) -> str:
+notes_semitones = ('c', 'c#', 'd', 'd#', 'e', 'f', 'f#', 'g', 'g#', 'a', 'a#', 'b')
+accid_semitones = {
+    's': 1,
+    '#': 1,
+    'b': -1,
+    'n': 0,
+    'x': 2,
+    'bb': -2
+}
+
+def convert_note_to_sharp(class_and_accid: str, octave: int) -> tuple[str, int]:
     '''
-    Convert a note to its equivalent in sharp (if it is a flat).
-    If the note has no accidental, it is not modified.
+    Convert a note to it enharmonically equivalent with a sharp accidental (represented as `#`).
+    If the note has no accidental, no conversion is made.
 
-    - note : a string of length 1 or 2 representing a musical note class (no octave).
-             Sharp can be represented either with 's' or '#'.
-             Flat can be represented either with 'f' of 'b'.
-
-    Output: `note` with sharp represented as '#', or `note` unchanged if there was no accidental.
+    In:
+        - class_and_accid: the class of the note, with a potential accidental (e.g `c`, `c#`)
+        - octave: the octave of the note
+    Out:
+        (class, octave): the note, converted with a sharp notation
     '''
 
-    notes = 'abcdefg'
+    if len(class_and_accid) == 1: # No accidental
+        return class_and_accid, octave
 
-    note = note.replace('s', '#')
-    if len(note) == 2 and note[1] in ('f', 'b'):
-        note = notes[(notes.index(note[0]) - 1) % len(notes)] + '#' # Convert flat to sharp
+    class_ = class_and_accid[0]
+    accid = class_and_accid[1:]
 
-    return note
+    new_semitones = notes_semitones.index(class_) + accid_semitones[accid]
+    new_class = notes_semitones[new_semitones % len(notes_semitones)]
+    new_oct = octave + new_semitones // len(notes_semitones)
+
+    return new_class, new_oct
 
 def calculate_note_interval(class_1: str, octave_1: int, class_2: str, octave_2: int) -> int:
     '''
-    Calculates the distance between (`class_1`, `octave_1`) and (`class_2`, `octave_2`), in semitones.
+    Calculates the distance between (`class_1`, `octave_1`) and (`class_2`, `octave_2`), in *semitones*.
 
     - class_1  : the note class of the first note (e.g 'c', 'cs', 'c#', ...) ;
     - octave_1 : the octave of the first note ;
     - class_2  : the note class of the second note ;
     - octave_2 : the octave of the second note.
 
-    Output : signed semitone distance between the two notes.
+    Output : *signed semitone* distance between the two notes.
     '''
 
-    #---Init
-    notes = ['c', 'c#', 'd', 'd#', 'e', 'f', 'f#', 'g', 'g#', 'a', 'a#', 'b']
-
     #---Convert to sharp
-    c1 = convert_note_to_sharp(class_1)
-    c2 = convert_note_to_sharp(class_2)
+    c1, o1 = convert_note_to_sharp(class_1, octave_1)
+    c2, o2 = convert_note_to_sharp(class_2, octave_2)
 
     #---Calculate interval
-    return 12 * (octave_2 - octave_1) + notes.index(c2) - notes.index(c1)
+    return 12 * (o2 - o1) + notes_semitones.index(c2) - notes_semitones.index(c1)
 
 def get_frequency(class_: str, octave: int) -> float:
     '''

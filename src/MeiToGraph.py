@@ -16,7 +16,7 @@
 import xml.etree.ElementTree as ET
 
 #---Project
-from src.utils import log, write_file
+from src.utils import convert_note_to_sharp, log, write_file
 
 from src.graph.Score import Score
 from src.graph.TopRhythmic import TopRhythmic
@@ -332,6 +332,32 @@ class MeiToGraph:
         - syllable  : the potential syllable attatched to a note ;
         - grace     : If not None, indicate that the note is a grace note, and give its type.
         '''
+
+        #-Convert to sharp
+        if type_ == 'rest' or accid == 'n':
+            pass # Do not convert for rest or when there is a natural
+
+        elif accid != None:
+            cl, octv = convert_note_to_sharp(class_ + accid, octave)
+
+            octave = octv
+            class_ = cl[0]
+
+            if len(cl) > 1:
+                accid = cl[1:]
+            else:
+                accid = None
+
+        elif accid_ges != None:
+            cl, octv = convert_note_to_sharp(class_ + accid_ges, octave)
+
+            octave = octv
+            class_ = cl[0]
+
+            if len(cl) > 1:
+                accid_ges = cl[1:]
+            else:
+                accid_ges = None
     
         #-Create Fact
         f = Fact(self.fn_without_path, id_, type_, class_, octave, duration, dots, accid, accid_ges, syllable, grace)

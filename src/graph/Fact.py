@@ -50,6 +50,12 @@ class Fact:
         self.grace = grace
         self.instrument = instrument
 
+        if self.accid != None:
+            self.accid = self.accid.replace('#', 's').replace('b', 'f')
+
+        if self.accid_ges != None:
+            self.accid_ges = self.accid_ges.replace('#', 's').replace('b', 'f')
+
         self._check();
         self._calculate_other_values();
 
@@ -60,7 +66,12 @@ class Fact:
         self.cypher_id = self.id_ + '_' + self.inputfile
 
         if self.class_ != None:
-            self.name = self.class_.upper() + str(self.octave)
+            if self.accid != None:
+                self.name = self.class_.upper() + self.accid.replace('s', '#').replace('f', 'b') + str(self.octave)
+            elif self.accid_ges != None:
+                self.name = self.class_.upper() + self.accid_ges.replace('s', '#').replace('f', 'b') + str(self.octave)
+            else:
+                self.name = self.class_.upper() + str(self.octave)
 
         if self.type_ != 'END':
             self.duration = 1 / self.dur
@@ -97,11 +108,11 @@ class Fact:
         if type(self.dots) != int or self.dots < 0:
             raise ValueError(f'Fact: `dots` should be a positive int, but "{self.dots}" found !')
 
-        if self.accid not in (None, 's', 'f', 'n', 'x'):
-            raise ValueError(f'Fact: `accid` attribute has to be in (None, "s", "f", "n", "x"), but "{self.accid}" was found !')
+        if self.accid not in (None, 's', 'f', 'n', 'x', 'bb'):
+            raise ValueError(f'Fact: `accid` attribute has to be in (None, "s", "f", "n", "x", "bb"), but "{self.accid}" was found !')
 
-        if self.accid_ges not in (None, 's', 'f', 'n', 'x'):
-            raise ValueError(f'Fact: `accid_ges` attribute has to be in (None, "s", "f", "n", "x"), but "{self.accid_ges}" was found !')
+        if self.accid_ges not in (None, 's', 'f', 'n', 'x', 'bb'):
+            raise ValueError(f'Fact: `accid_ges` attribute has to be in (None, "s", "f", "n", "x", "bb"), but "{self.accid_ges}" was found !')
 
     def to_cypher(self, parent_cypher_id: str) -> str:
         '''Returns the CREATE cypher clause that creates the Fact node and the link from its Event parent.'''
