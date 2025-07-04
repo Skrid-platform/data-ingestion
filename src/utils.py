@@ -17,6 +17,8 @@ from datetime import datetime as dt
 import unicodedata
 import re
 
+# from src.graph.Fact import Fact
+
 ##-IO
 def log(lvl: str, msg: str, use_stderr: bool = False):
     '''
@@ -164,3 +166,25 @@ def get_frequency(class_: str, octave: int) -> float:
     #---Calculate frequency
     n = calculate_note_interval(base_note, base_octave, class_, octave)
     return f(base_freq, n)
+
+def get_lowest_fact(facts: list['Fact']) -> 'Fact':
+    '''
+    Returns the fact with the lowest pitch.
+    If there is only one fact, it is returned.
+
+    In:
+        - facts: the list of facts
+    Out:
+        the fact with the lowest pitch
+    '''
+
+    if len(facts) == 1:
+        return facts[0]
+
+    frequencies: dict[float, Fact] = {}
+    for f in facts:
+        if f.class_ != None and f.octave != None:
+            freq = get_frequency(f.class_, f.octave)
+            frequencies[freq] = f
+
+    return frequencies[min(frequencies.keys())]

@@ -15,7 +15,7 @@
 from src.graph.Fact import Fact
 from src.graph.utils_graph import make_create_string, make_create_link_string
 
-from src.utils import calculate_note_interval, log
+from src.utils import calculate_note_interval, get_lowest_fact, log
 
 ##-Main
 class Event:
@@ -122,8 +122,8 @@ class Event:
 
             # Calculate interval
             if len(previous_Event.facts) > 0 and len(self.facts) > 0:
-                f1 = previous_Event.facts[0]
-                f2 = self.facts[0]
+                f1 = get_lowest_fact(previous_Event.facts)
+                f2 = get_lowest_fact(self.facts)
 
                 if f1.type_ == 'note' and f2.type_ == 'note':
                     interval = calculate_note_interval(f1.class_, f1.octave, f2.class_, f2.octave) / 2

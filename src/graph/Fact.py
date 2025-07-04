@@ -73,6 +73,12 @@ class Fact:
             else:
                 self.name = self.class_.upper() + str(self.octave)
 
+        elif self.type_ == 'rest':
+            self.name = 'r'
+
+            if self.dur != None:
+                self.name += f' (1/{self.dur})'
+
         if self.type_ != 'END':
             self.duration = 1 / self.dur
 
